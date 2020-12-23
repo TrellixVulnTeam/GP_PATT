@@ -7,6 +7,8 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.rubika.JanusHelper;
+import org.telegram.messenger.rubika.MyLog;
 import org.webrtc.ContextUtils;
 import org.webrtc.VideoSink;
 
@@ -118,6 +120,12 @@ public class NativeInstance {
         AndroidUtilities.runOnUIThread(() -> audioLevelsCallback.run(uids, levels, voice));
     }
 
+    private void sdp(String sdp) {
+        MyLog.e("injaaa", "sdp " + sdp);
+        JanusHelper.sendOffer(sdp);
+
+    }
+
     private void onEmitJoinPayload(String ufrag, String pwd, Instance.Fingerprint[] fingerprints, int ssrc) {
         try {
             JSONObject json = new JSONObject();
@@ -140,10 +148,12 @@ public class NativeInstance {
     }
 
     public native void removeSsrcs(int[] ssrcs);
+
     public native void setJoinResponsePayload(String ufrag, String pwd, Instance.Fingerprint[] fingerprints, Instance.Candidate[] candidates);
 
     private Instance.FinalState finalState;
     private CountDownLatch stopBarrier;
+
     private void onStop(Instance.FinalState state) {
         finalState = state;
         if (stopBarrier != null) {
@@ -167,28 +177,50 @@ public class NativeInstance {
     }
 
     private static native long makeGroupNativeInstance(NativeInstance instance, boolean highQuality);
+
     private static native long makeNativeInstance(String version, NativeInstance instance, Instance.Config config, String persistentStateFilePath, Instance.Endpoint[] endpoints, Instance.Proxy proxy, int networkType, Instance.EncryptionKey encryptionKey, VideoSink remoteSink, long videoCapturer, float aspectRatio);
+
     public static native long createVideoCapturer(VideoSink localSink, boolean front);
+
     public static native void setVideoStateCapturer(long videoCapturer, int videoState);
+
     public static native void switchCameraCapturer(long videoCapturer, boolean front);
+
     public static native void destroyVideoCapturer(long videoCapturer);
 
     public native void setGlobalServerConfig(String serverConfigJson);
+
     public native void setBufferSize(int size);
+
     public native String getVersion();
+
     public native void setNetworkType(int networkType);
+
     public native void setMuteMicrophone(boolean muteMicrophone);
+
     public native void setAudioOutputGainControlEnabled(boolean enabled);
+
     public native void setEchoCancellationStrength(int strength);
+
     public native String getLastError();
+
     public native String getDebugInfo();
+
     public native long getPreferredRelayId();
+
     public native Instance.TrafficStats getTrafficStats();
+
     public native byte[] getPersistentState();
+
     private native void stopNative();
+
     private native void stopGroupNative();
+
     public native void setupOutgoingVideo(VideoSink localSink, boolean front);
+
     public native void switchCamera(boolean front);
+
     public native void setVideoState(int videoState);
+
     public native void onSignalingDataReceive(byte[] data);
 }

@@ -1491,12 +1491,13 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
         pipItem.setContentDescription(LocaleController.getString("AccDescrPipMode", R.string.AccDescrPipMode));
         pipItem.setBackgroundDrawable(Theme.createSelectorDrawable(Theme.getColor(Theme.key_voipgroup_actionBarItemsSelector), 6));
         pipItem.setOnClickListener(v -> {
-            if (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(parentActivity)) {
-                GroupCallPip.clearForce();
-                dismiss();
-            } else {
-                AlertsCreator.createDrawOverlayGroupCallPermissionDialog(getContext()).show();
-            }
+            VoIPService.getSharedInstance().setMicMute(false, true, false);
+//            if (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(parentActivity)) {
+//                GroupCallPip.clearForce();
+//                dismiss();
+//            } else {
+//                AlertsCreator.createDrawOverlayGroupCallPermissionDialog(getContext()).show();
+//            }
         });
 
         titleTextView = new TextView(context);
@@ -1688,7 +1689,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
             boolean keyboardIsOpen = false;
             if (parentActivity != null) {
                 BaseFragment fragment = parentActivity.getActionBarLayout().fragmentsStack.get(parentActivity.getActionBarLayout().fragmentsStack.size() - 1);
-                if (fragment  instanceof ChatActivity) {
+                if (fragment instanceof ChatActivity) {
                     keyboardIsOpen = ((ChatActivity) fragment).needEnterText();
                     anyEnterEventSent = true;
                     enterEventSent = true;
@@ -2086,7 +2087,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                 states[muteButtonState].shader = null;
             } else {
                 if (muteButtonState == MUTE_BUTTON_STATE_MUTED_BY_ADMIN) {
-                    states[muteButtonState].shader = new LinearGradient(0,400, 400, 0, new int[]{Theme.getColor(Theme.key_voipgroup_mutedByAdminGradient),Theme.getColor(Theme.key_voipgroup_mutedByAdminGradient3), Theme.getColor(Theme.key_voipgroup_mutedByAdminGradient2)}, null, Shader.TileMode.CLAMP);
+                    states[muteButtonState].shader = new LinearGradient(0, 400, 400, 0, new int[]{Theme.getColor(Theme.key_voipgroup_mutedByAdminGradient), Theme.getColor(Theme.key_voipgroup_mutedByAdminGradient3), Theme.getColor(Theme.key_voipgroup_mutedByAdminGradient2)}, null, Shader.TileMode.CLAMP);
                 } else if (muteButtonState == MUTE_BUTTON_STATE_MUTE) {
                     states[muteButtonState].shader = new RadialGradient(200, 200, 200, new int[]{Theme.getColor(Theme.key_voipgroup_muteButton), Theme.getColor(Theme.key_voipgroup_muteButton3)}, null, Shader.TileMode.CLAMP);
                 } else {

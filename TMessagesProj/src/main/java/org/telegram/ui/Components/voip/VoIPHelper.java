@@ -116,25 +116,25 @@ public class VoIPHelper {
 		if (activity == null) {
 			return;
 		}
-		if (ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState() != ConnectionsManager.ConnectionStateConnected) {
-			boolean isAirplaneMode = Settings.System.getInt(activity.getContentResolver(), Settings.System.AIRPLANE_MODE_ON, 0) != 0;
-			AlertDialog.Builder bldr = new AlertDialog.Builder(activity)
-					.setTitle(isAirplaneMode ? LocaleController.getString("VoipOfflineAirplaneTitle", R.string.VoipOfflineAirplaneTitle) : LocaleController.getString("VoipOfflineTitle", R.string.VoipOfflineTitle))
-					.setMessage(isAirplaneMode ? LocaleController.getString("VoipGroupOfflineAirplane", R.string.VoipGroupOfflineAirplane) : LocaleController.getString("VoipGroupOffline", R.string.VoipGroupOffline))
-					.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
-			if (isAirplaneMode) {
-				final Intent settingsIntent = new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS);
-				if (settingsIntent.resolveActivity(activity.getPackageManager()) != null) {
-					bldr.setNeutralButton(LocaleController.getString("VoipOfflineOpenSettings", R.string.VoipOfflineOpenSettings), (dialog, which) -> activity.startActivity(settingsIntent));
-				}
-			}
-			try {
-				bldr.show();
-			} catch (Exception e) {
-				FileLog.e(e);
-			}
-			return;
-		}
+//		if (ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState() != ConnectionsManager.ConnectionStateConnected) {
+//			boolean isAirplaneMode = Settings.System.getInt(activity.getContentResolver(), Settings.System.AIRPLANE_MODE_ON, 0) != 0;
+//			AlertDialog.Builder bldr = new AlertDialog.Builder(activity)
+//					.setTitle(isAirplaneMode ? LocaleController.getString("VoipOfflineAirplaneTitle", R.string.VoipOfflineAirplaneTitle) : LocaleController.getString("VoipOfflineTitle", R.string.VoipOfflineTitle))
+//					.setMessage(isAirplaneMode ? LocaleController.getString("VoipGroupOfflineAirplane", R.string.VoipGroupOfflineAirplane) : LocaleController.getString("VoipGroupOffline", R.string.VoipGroupOffline))
+//					.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+//			if (isAirplaneMode) {
+//				final Intent settingsIntent = new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS);
+//				if (settingsIntent.resolveActivity(activity.getPackageManager()) != null) {
+//					bldr.setNeutralButton(LocaleController.getString("VoipOfflineOpenSettings", R.string.VoipOfflineOpenSettings), (dialog, which) -> activity.startActivity(settingsIntent));
+//				}
+//			}
+//			try {
+//				bldr.show();
+//			} catch (Exception e) {
+//				FileLog.e(e);
+//			}
+//			return;
+//		}
 
 		if (Build.VERSION.SDK_INT >= 23) {
 			ArrayList<String> permissions = new ArrayList<>();

@@ -1529,6 +1529,7 @@ public:
                         auto payload = parseSdpIntoJoinPayload(adjustedSdp);
                         if (payload) {
                             payload->ssrc = strong->_mainStreamAudioSsrc;
+                            payload->sdp=adjustedSdp;
                             completion(payload.value());
                         }
                     }, [](webrtc::RTCError error) {

@@ -132,9 +132,9 @@ public abstract class VoIPBaseService extends Service implements SensorEventList
 	protected static Runnable setModeRunnable;
 	protected static final Object sync = new Object();
 	protected NetworkInfo lastNetInfo;
-	protected int currentState = 0;
+	public int currentState = 0;
 	protected Notification ongoingCallNotification;
-	protected NativeInstance tgVoip;
+	public NativeInstance tgVoip;
 	protected boolean wasConnected;
 
 	protected TLRPC.Chat chat;
@@ -948,7 +948,7 @@ public abstract class VoIPBaseService extends Service implements SensorEventList
 		}
 	}
 
-	protected void dispatchStateChanged(int state) {
+	public void dispatchStateChanged(int state) {
 		if (BuildVars.LOGS_ENABLED) {
 			FileLog.d("== Call " + getCallID() + " state changed to " + state + " ==");
 		}

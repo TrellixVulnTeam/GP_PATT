@@ -57,7 +57,7 @@ struct GroupJoinPayload {
     std::string ufrag;
     std::string pwd;
     std::vector<GroupJoinPayloadFingerprint> fingerprints;
-
+	std::string sdp;
     uint32_t ssrc = 0;
 };
 
