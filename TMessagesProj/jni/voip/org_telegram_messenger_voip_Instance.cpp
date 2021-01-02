@@ -347,7 +347,7 @@ JNIEXPORT void JNICALL
 Java_org_telegram_messenger_voip_NativeInstance_setJoinResponsePayload(JNIEnv *env, jobject obj,
                                                                        jstring ufrag, jstring pwd,
                                                                        jobjectArray fingerprints,
-                                                                       jobjectArray candidates) {
+                                                                       jobjectArray candidates,jstring sdpString) {
     InstanceHolder *instance = getInstanceHolder(env, obj);
     if (instance->groupNativeInstance == nullptr) {
         return;
@@ -424,6 +424,7 @@ Java_org_telegram_messenger_voip_NativeInstance_setJoinResponsePayload(JNIEnv *e
                     .pwd = tgvoip::jni::JavaStringToStdString(env, pwd),
                     .fingerprints = fingerprintsArray,
                     .candidates = candidatesArray,
+                    .sdpString=tgvoip::jni::JavaStringToStdString(env, sdpString),
             });
 }
 

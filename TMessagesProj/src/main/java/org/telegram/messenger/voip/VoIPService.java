@@ -998,7 +998,7 @@ public class VoIPService extends VoIPBaseService {
                 }
 
 
-                tgVoip.setJoinResponsePayload(ufrag, pwd, fingerprints, candidates);
+                //tgVoip.setJoinResponsePayload(ufrag, pwd, fingerprints, candidates);
                 dispatchStateChanged(STATE_WAIT_INIT_ACK);
             } catch (Exception e) {
                 FileLog.e(e);

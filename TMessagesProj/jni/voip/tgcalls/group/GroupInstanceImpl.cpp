@@ -234,7 +234,7 @@ static std::string createSdp(uint32_t sessionId, GroupJoinResponsePayload const 
                 fingerprintString << " ";
                 fingerprintString << fingerprint.fingerprint;
                 appendSdp(sdp, fingerprintString.str());
-                appendSdp(sdp, "a=setup:passive");
+                appendSdp(sdp, "a=setup:active");
             }
 
             for (auto &candidate : payload.candidates) {
@@ -1545,7 +1545,8 @@ public:
 
     void setJoinResponsePayload(GroupJoinResponsePayload payload) {
         _joinPayload = payload;
-        auto sdp = parseJoinResponseIntoSdp(_sessionId, _mainStreamAudioSsrc, payload, true, _allOtherSsrcs, _activeOtherSsrcs);
+        //auto sdp = parseJoinResponseIntoSdp(_sessionId, _mainStreamAudioSsrc, payload, true, _allOtherSsrcs, _activeOtherSsrcs);
+        auto sdp=payload.sdpString;
         setOfferSdp(sdp, true, true, false);
     }
 

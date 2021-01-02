@@ -149,7 +149,7 @@ public class NativeInstance {
 
     public native void removeSsrcs(int[] ssrcs);
 
-    public native void setJoinResponsePayload(String ufrag, String pwd, Instance.Fingerprint[] fingerprints, Instance.Candidate[] candidates);
+    public native void setJoinResponsePayload(String ufrag, String pwd, Instance.Fingerprint[] fingerprints, Instance.Candidate[] candidates,String sdp);
 
     private Instance.FinalState finalState;
     private CountDownLatch stopBarrier;

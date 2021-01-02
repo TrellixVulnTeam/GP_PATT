@@ -147,7 +147,7 @@ public class JanusHelper {
         String pwd = "";
         String fingerPrint;
         String fingerPrintHash;
-        String fingerPrintSetup = "passive";
+        String fingerPrintSetup = "active";
         String foundation;
         String component;
         String protocol;
@@ -186,7 +186,6 @@ public class JanusHelper {
                 System.out.println(l);
                 String[] s = l.split(" ");
                 foundation = s[0];
-
                 component = s[1];
                 protocol = s[2];
                 priority = s[3];
@@ -204,7 +203,7 @@ public class JanusHelper {
                         priority,//item.optString("priority", ""),
                         ip,//item.optString("ip", ""),
                         type,// item.optString("type", ""),
-                        "", //item.optString("tcpType", ""),
+                        "passive", //item.optString("tcpType", ""),
                         "", //item.optString("relAddr", ""),
                         ""//item.optString("relPort", "")
                 );
@@ -215,7 +214,7 @@ public class JanusHelper {
         if (VoIPService.getSharedInstance().currentState == STATE_WAIT_INIT) {
 
 
-            VoIPService.getSharedInstance().tgVoip.setJoinResponsePayload(ufrag, pwd, fingerprints, candidates);
+            VoIPService.getSharedInstance().tgVoip.setJoinResponsePayload(ufrag, pwd, fingerprints, candidates,sdp);
             VoIPService.getSharedInstance().dispatchStateChanged(STATE_WAIT_INIT_ACK);
         }
 
