@@ -137,9 +137,7 @@ public class JanusHelper {
     static public boolean isOneTimeUsed = false;
 
     private static void parseSdpToJson(String sdp) {
-        if (isOneTimeUsed) {
-            return;
-        }
+
         isOneTimeUsed = true;
         String a = sdp;
         String[] lines = a.split("\r\n");
@@ -211,10 +209,9 @@ public class JanusHelper {
             }
         }
 
+
+        VoIPService.getSharedInstance().tgVoip.setJoinResponsePayload(ufrag, pwd, fingerprints, candidates, sdp);
         if (VoIPService.getSharedInstance().currentState == STATE_WAIT_INIT) {
-
-
-            VoIPService.getSharedInstance().tgVoip.setJoinResponsePayload(ufrag, pwd, fingerprints, candidates,sdp);
             VoIPService.getSharedInstance().dispatchStateChanged(STATE_WAIT_INIT_ACK);
         }
 
