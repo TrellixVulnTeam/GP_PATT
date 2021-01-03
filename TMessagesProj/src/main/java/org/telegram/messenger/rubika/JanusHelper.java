@@ -114,7 +114,7 @@ public class JanusHelper {
     }
 
     private static void startGetEvents() {
-        ApiRequestMessangerRx.getInstance().sendGetEvent(sessionId, handleId).delay(10, TimeUnit.SECONDS).repeat(50).observeOn(AndroidSchedulers.mainThread()).subscribeWith(new DisposableObserver<JanusGetEventOutput>() {
+        ApiRequestMessangerRx.getInstance().sendGetEvent(sessionId, handleId).delay(1, TimeUnit.SECONDS).repeat(60).observeOn(AndroidSchedulers.mainThread()).subscribeWith(new DisposableObserver<JanusGetEventOutput>() {
             @Override
             public void onNext(@NonNull JanusGetEventOutput janusGetEventOutput) {
                 if (janusGetEventOutput.jsep != null && janusGetEventOutput.jsep.sdp != null && janusGetEventOutput.jsep.type.equals("answer")) {

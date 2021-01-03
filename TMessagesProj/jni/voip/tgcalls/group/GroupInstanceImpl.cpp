@@ -294,6 +294,7 @@ static std::string createSdp(uint32_t sessionId, GroupJoinResponsePayload const 
 
         if (isAnswer && stream.isMain) {
             appendSdp(sdp, "a=recvonly");
+//            appendSdp(sdp, "a=sendrecv");
         } else {
             if (stream.isMain) {
                 appendSdp(sdp, "a=sendrecv");
@@ -1231,10 +1232,21 @@ public:
 
         webrtc::PeerConnectionInterface::RTCConfiguration config;
         config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
-        //config.continual_gathering_policy = webrtc::PeerConnectionInterface::ContinualGatheringPolicy::GATHER_CONTINUALLY;
+//        //config.continual_gathering_policy = webrtc::PeerCoxnnectionInterface::ContinualGatheringPolicy::GATHER_CONTINUALLY;
         config.audio_jitter_buffer_fast_accelerate = true;
         config.prioritize_most_likely_ice_candidate_pairs = true;
         config.presume_writable_when_fully_relayed = true;
+
+        webrtc::PeerConnectionInterface::IceServer iceServer;
+        std::ostringstream uri;
+        uri << "stun:";
+        uri << "stun.l.google.com:19302";
+        iceServer.uri = uri.str();
+        config.servers.push_back(iceServer);
+
+//
+//        config.
+
         //config.audio_jitter_buffer_enable_rtx_handling = true;
 
         /*webrtc::CryptoOptions cryptoOptions;
@@ -1245,12 +1257,12 @@ public:
 
         _observer.reset(new PeerConnectionObserverImpl(
             [weak](std::string sdp, int mid, std::string sdpMid) {
-                /*getMediaThread()->PostTask(RTC_FROM_HERE, [weak, sdp, mid, sdpMid](){
+                getMediaThread()->PostTask(RTC_FROM_HERE, [weak, sdp, mid, sdpMid](){
                     auto strong = weak.lock();
                     if (strong) {
-                        //strong->emitIceCandidate(sdp, mid, sdpMid);
+                        RTC_LOG(LS_INFO) << "aappppp emitIceCandidate " << sdp << ", " << mid << ", " << sdpMid;
                     }
-                });*/
+                });
             },
             [weak](bool isConnected) {
                 getMediaThread()->PostTask(RTC_FROM_HERE, [weak, isConnected](){
@@ -2052,7 +2064,7 @@ private:
 
     std::map<uint32_t, std::shared_ptr<AudioTrackSinkInterfaceImpl>> _audioTrackSinks;
     std::map<uint32_t, GroupLevelValue> _audioLevels;
-    
+
     std::shared_ptr<PlatformContext> _platformContext;
 };
 

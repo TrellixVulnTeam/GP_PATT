@@ -1595,7 +1595,9 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
 
     @Override
     public void onStateChanged(int state) {
+
         currentCallState = state;
+
         updateState(isShowing(), false);
     }
 
