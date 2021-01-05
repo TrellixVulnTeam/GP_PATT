@@ -1,19 +1,16 @@
 package org.telegram.messenger.rubika;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.rubika.models.JanusAttachInput;
 import org.telegram.messenger.rubika.models.JanusAttachOutput;
 import org.telegram.messenger.rubika.models.JanusCreateInput;
 import org.telegram.messenger.rubika.models.JanusCreateOutput;
 import org.telegram.messenger.rubika.models.JanusGetEventOutput;
+import org.telegram.messenger.rubika.models.JanusJoinFeedInput;
 import org.telegram.messenger.rubika.models.JanusJoinInput;
 import org.telegram.messenger.rubika.models.JanusMessageOutput;
 import org.telegram.messenger.rubika.models.JanusOfferSdpInput;
 import org.telegram.messenger.voip.Instance;
 import org.telegram.messenger.voip.VoIPService;
-import org.telegram.tgnet.TLRPC;
 
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +24,7 @@ import static org.telegram.messenger.voip.VoIPBaseService.STATE_WAIT_INIT_ACK;
 public class JanusHelper {
     static public String sessionId = "";
     static public String handleId = "";
+    private static String privateId = "";
 
     public static void create() {
         ApiRequestMessangerRx.getInstance().createJanus(new JanusCreateInput()).subscribeWith(new DisposableObserver<JanusCreateOutput>() {
@@ -51,7 +49,7 @@ public class JanusHelper {
     }
 
     public static void attach() {
-        ApiRequestMessangerRx.getInstance().attachJanus(sessionId, new JanusAttachInput()).subscribeWith(new DisposableObserver<JanusAttachOutput>() {
+        ApiRequestMessangerRx.getInstance().attachJanus(sessionId, new JanusAttachInput()).subscribe(new DisposableObserver<JanusAttachOutput>() {
             @Override
             public void onNext(@NonNull JanusAttachOutput janusAttachOutput) {
                 MyLog.e("janus", "handleId " + janusAttachOutput.data.id);
@@ -72,10 +70,33 @@ public class JanusHelper {
     }
 
     public static void joinRoom() {
-        ApiRequestMessangerRx.getInstance().sendMessageJoin(sessionId, handleId, new JanusJoinInput()).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
+        ApiRequestMessangerRx.getInstance().sendMessageJoin(sessionId, handleId, new JanusJoinInput()).subscribe(new DisposableObserver<JanusMessageOutput>() {
             @Override
             public void onNext(@NonNull JanusMessageOutput output) {
                 startGetEvents();
+
+
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
+
+    static public void joinFeed(JanusGetEventOutput.Publisher p) {
+        JanusJoinFeedInput input = new JanusJoinFeedInput();
+        input.body.private_id = privateId;
+        input.body.feed = p.id;
+        DisposableObserver<JanusMessageOutput> a = ApiRequestMessangerRx.getInstance().joinFeed(sessionId, handleId, input).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
+            @Override
+            public void onNext(@NonNull JanusMessageOutput output) {
 
 
             }
@@ -114,9 +135,19 @@ public class JanusHelper {
     }
 
     private static void startGetEvents() {
-        ApiRequestMessangerRx.getInstance().sendGetEvent(sessionId, handleId).delay(1, TimeUnit.SECONDS).repeat(60).observeOn(AndroidSchedulers.mainThread()).subscribeWith(new DisposableObserver<JanusGetEventOutput>() {
+        DisposableObserver<JanusGetEventOutput> a = ApiRequestMessangerRx.getInstance().sendGetEvent(sessionId, handleId).delay(1, TimeUnit.SECONDS).repeat(200).observeOn(AndroidSchedulers.mainThread()).subscribeWith(new DisposableObserver<JanusGetEventOutput>() {
             @Override
             public void onNext(@NonNull JanusGetEventOutput janusGetEventOutput) {
+                if (janusGetEventOutput.plugindata != null) {
+                    if (janusGetEventOutput.plugindata.data.private_id != null) {
+                        privateId = janusGetEventOutput.plugindata.data.private_id;
+                    }
+                    if (janusGetEventOutput.plugindata.data.publishers != null) {
+                        for (JanusGetEventOutput.Publisher p : janusGetEventOutput.plugindata.data.publishers) {
+                            joinFeed(p);
+                        }
+                    }
+                }
                 if (janusGetEventOutput.jsep != null && janusGetEventOutput.jsep.sdp != null && janusGetEventOutput.jsep.type.equals("answer")) {
                     parseSdpToJson(janusGetEventOutput.jsep.sdp);
                 }

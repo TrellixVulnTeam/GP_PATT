@@ -6,6 +6,7 @@ import org.telegram.messenger.rubika.models.JanusAttachOutput;
 import org.telegram.messenger.rubika.models.JanusCreateInput;
 import org.telegram.messenger.rubika.models.JanusCreateOutput;
 import org.telegram.messenger.rubika.models.JanusGetEventOutput;
+import org.telegram.messenger.rubika.models.JanusJoinFeedInput;
 import org.telegram.messenger.rubika.models.JanusJoinInput;
 import org.telegram.messenger.rubika.models.JanusMessageOutput;
 import org.telegram.messenger.rubika.models.JanusOfferSdpInput;
@@ -25,6 +26,9 @@ public interface RestApiMessangerRx {
 
     @POST("/janus/{sessionId}/{handleId}")
     Observable<JanusMessageOutput> janusJoin(@Path("sessionId") String sessionId, @Path("handleId") String handleId, @Body JanusJoinInput input);
+
+    @POST("/janus/{sessionId}/{handleId}")
+    Observable<JanusMessageOutput> janusJoinFeed(@Path("sessionId") String sessionId, @Path("handleId") String handleId, @Body JanusJoinFeedInput input);
 
     @POST("/janus/{sessionId}/{handleId}")
     Observable<JanusMessageOutput> janusSdpOffer(@Path("sessionId") String sessionId, @Path("handleId") String handleId, @Body JanusOfferSdpInput input);

@@ -8,6 +8,7 @@ import org.telegram.messenger.rubika.models.JanusAttachOutput;
 import org.telegram.messenger.rubika.models.JanusCreateInput;
 import org.telegram.messenger.rubika.models.JanusCreateOutput;
 import org.telegram.messenger.rubika.models.JanusGetEventOutput;
+import org.telegram.messenger.rubika.models.JanusJoinFeedInput;
 import org.telegram.messenger.rubika.models.JanusJoinInput;
 import org.telegram.messenger.rubika.models.JanusMessageOutput;
 import org.telegram.messenger.rubika.models.JanusOfferSdpInput;
@@ -142,6 +143,13 @@ public class ApiRequestMessangerRx {
 
     public Observable<JanusMessageOutput> sendMessageJoin(String sessionId, String handleId, JanusJoinInput input) {
         return restApiService.janusJoin(sessionId, handleId, input)
+                .compose(rxHelper.applySchedulers())
+                .compose(rxHelper.addRetryAndDelay(1, 2, 3));
+
+    }
+
+    public Observable<JanusMessageOutput> joinFeed(String sessionId, String handleId, JanusJoinFeedInput input) {
+        return restApiService.janusJoinFeed(sessionId, handleId, input)
                 .compose(rxHelper.applySchedulers())
                 .compose(rxHelper.addRetryAndDelay(1, 2, 3));
 

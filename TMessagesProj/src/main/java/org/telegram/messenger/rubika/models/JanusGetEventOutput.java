@@ -1,5 +1,7 @@
 package org.telegram.messenger.rubika.models;
 
+import java.util.ArrayList;
+
 public class JanusGetEventOutput {
     public String janus;
     public String transaction;
@@ -13,7 +15,13 @@ public class JanusGetEventOutput {
     }
 
     public static class Data {
-        String private_id;
+        public String private_id;
+        public ArrayList<Publisher> publishers;
+    }
+
+    public static class Publisher {
+        public String id;
+
     }
 
     public static class Jsep {
