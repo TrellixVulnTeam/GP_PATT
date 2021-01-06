@@ -16,12 +16,13 @@ public class JanusJoinFeedInput {
         public int room = 1234;
         public String ptype = "subscriber";
         public long private_id;
-        public ArrayList<StreamObject> streams=new ArrayList<>();
+        public boolean close_pc = false;
+        public ArrayList<StreamObject> streams = new ArrayList<>();
 
     }
 
     public static class StreamObject {
-        public  long feed;
+        public long feed;
         public String mid;
     }
 }

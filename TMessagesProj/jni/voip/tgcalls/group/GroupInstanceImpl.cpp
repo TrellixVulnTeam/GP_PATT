@@ -552,7 +552,7 @@ namespace tgcalls {
                 std::string sdp;
                 candidate->ToString(&sdp);
                 RTC_LOG(LoggingSeverity::WARNING)
-                        << "----- onIce condidatreeee join -----";
+                << "----- onIce condidatreeee join -----";
                 _discoveredIceCandidate(sdp, candidate->sdp_mline_index(), candidate->sdp_mid());
             }
 
@@ -1288,9 +1288,9 @@ namespace tgcalls {
             webrtc::PeerConnectionInterface::RTCConfiguration config;
             config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
 //        //config.continual_gathering_policy = webrtc::PeerCoxnnectionInterface::ContinualGatheringPolicy::GATHER_CONTINUALLY;
-//            config.audio_jitter_buffer_fast_accelerate = true;
-//            config.prioritize_most_likely_ice_candidate_pairs = true;
-//            config.presume_writable_when_fully_relayed = true;
+            config.audio_jitter_buffer_fast_accelerate = true;
+            config.prioritize_most_likely_ice_candidate_pairs = true;
+            config.presume_writable_when_fully_relayed = true;
 
             webrtc::PeerConnectionInterface::IceServer iceServer;
             std::ostringstream uri;
@@ -1316,8 +1316,8 @@ namespace tgcalls {
                             auto strong = weak.lock();
                             if (strong) {
                                 RTC_LOG(LS_INFO)
-                                        << "aappppp emitIceCandidate " << sdp << ", " << mid << ", "
-                                        << sdpMid;
+                                << "aappppp emitIceCandidate " << sdp << ", " << mid << ", "
+                                << sdpMid;
                                 strong->cCompletion(sdp);
                             }
                         });
@@ -1333,7 +1333,7 @@ namespace tgcalls {
                     [weak](rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
                         getMediaThread()->PostTask(RTC_FROM_HERE, [weak, transceiver]() {
                             RTC_LOG(LoggingSeverity::WARNING)
-                                    << "trackadded1";
+                            << "trackadded1";
                             auto strong = weak.lock();
                             if (!strong) {
                                 return;
@@ -1365,60 +1365,60 @@ namespace tgcalls {
             assert(_peerConnection != nullptr);
 
             cricket::AudioOptions options;
-            rtc::scoped_refptr<webrtc::AudioSourceInterface> audioSource = _nativeFactory->CreateAudioSource(
-                    options);
-            std::stringstream name;
-            name << "audio";
-            name << 0;
-            std::vector<std::string> streamIds;
-            streamIds.push_back(name.str());
-            _localAudioTrack = _nativeFactory->CreateAudioTrack(name.str(), audioSource);
-            _localAudioTrack->set_enabled(false);
-            auto addedTrack = _peerConnection->AddTrack(_localAudioTrack, streamIds);
+//            rtc::scoped_refptr<webrtc::AudioSourceInterface> audioSource = _nativeFactory->CreateAudioSource(
+//                    options);
+//            std::stringstream name;
+//            name << "audio";
+//            name << 0;
+//            std::vector<std::string> streamIds;
+//            streamIds.push_back(name.str());
+//            _localAudioTrack = _nativeFactory->CreateAudioTrack(name.str(), audioSource);
+//            _localAudioTrack->set_enabled(false);
+//            auto addedTrack = _peerConnection->AddTrack(_localAudioTrack, streamIds);
+//
+//            if (addedTrack.ok()) {
+//                _localAudioTrackSender = addedTrack.value();
+//                for (auto &it : _peerConnection->GetTransceivers()) {
+//                    if (it->media_type() == cricket::MediaType::MEDIA_TYPE_AUDIO) {
+//                        if (_localAudioTrackSender.get() == it->sender().get()) {
+//                            it->SetDirection(webrtc::RtpTransceiverDirection::kRecvOnly);
+//                        }
+//
+//                        break;
+//                    }
+//                }
+//            }
 
-            if (addedTrack.ok()) {
-                _localAudioTrackSender = addedTrack.value();
-                for (auto &it : _peerConnection->GetTransceivers()) {
-                    if (it->media_type() == cricket::MediaType::MEDIA_TYPE_AUDIO) {
-                        if (_localAudioTrackSender.get() == it->sender().get()) {
-                            it->SetDirection(webrtc::RtpTransceiverDirection::kSendRecv);
-                        }
-
-                        break;
-                    }
-                }
-            }
-
-            setAudioInputDevice(_initialInputDeviceId);
+//            setAudioInputDevice(_initialInputDeviceId);
             setAudioOutputDevice(_initialOutputDeviceId);
 
-            // At least on Windows recording doesn't work without started playout.
-            withAudioDeviceModule([weak](webrtc::AudioDeviceModule *adm) {
-#ifdef WEBRTC_WIN
-                // At least on Windows starting/stopping playout while recording
-                // is active leads to errors in recording and assertion violation.
-                adm->EnableBuiltInAEC(false);
-#endif // WEBRTC_WIN
-
-                if (adm->InitPlayout()) {
-                    adm->StartPlayout();
-                } else {
-                    getMediaThread()->PostDelayedTask(RTC_FROM_HERE, [weak]() {
-                        auto strong = weak.lock();
-                        if (!strong) {
-                            return;
-                        }
-                        strong->withAudioDeviceModule([](webrtc::AudioDeviceModule *adm) {
-                            if (adm->InitPlayout()) {
-                                adm->StartPlayout();
-                            }
-                        });
-                    }, 2000);
-                }
-            });
+//            // At least on Windows recording doesn't work without started playout.
+//            withAudioDeviceModule([weak](webrtc::AudioDeviceModule *adm) {
+//#ifdef WEBRTC_WIN
+//                // At least on Windows starting/stopping playout while recording
+//                // is active leads to errors in recording and assertion violation.
+//                adm->EnableBuiltInAEC(false);
+//#endif // WEBRTC_WIN
+//
+//                if (adm->InitPlayout()) {
+//                    adm->StartPlayout();
+//                } else {
+//                    getMediaThread()->PostDelayedTask(RTC_FROM_HERE, [weak]() {
+//                        auto strong = weak.lock();
+//                        if (!strong) {
+//                            return;
+//                        }
+//                        strong->withAudioDeviceModule([](webrtc::AudioDeviceModule *adm) {
+//                            if (adm->InitPlayout()) {
+//                                adm->StartPlayout();
+//                            }
+//                        });
+//                    }, 2000);
+//                }
+//            });
 
             //beginStatsTimer(100);
-            beginLevelsTimer(50);
+//            beginLevelsTimer(50);
         }
 
 
@@ -1608,11 +1608,11 @@ namespace tgcalls {
                                                                auto adjustedSdp = result.str();
 
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                                       << "----- setLocalDescription join -----";
+                                                               << "----- setLocalDescription join -----";
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                                       << adjustedSdp;
+                                                               << adjustedSdp;
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                                       << "-----";
+                                                               << "-----";
 
                                                                webrtc::SdpParseError error;
                                                                webrtc::SessionDescriptionInterface *sessionDescription = webrtc::CreateSessionDescription(
@@ -1751,7 +1751,7 @@ namespace tgcalls {
                                     auto adjustedSdp = result.str();
 
                                     RTC_LOG(LoggingSeverity::WARNING)
-                                            << "----- setLocalDescription applyLocalSdp -----";
+                                    << "----- setLocalDescription applyLocalSdp -----";
                                     RTC_LOG(LoggingSeverity::WARNING) << adjustedSdp;
                                     RTC_LOG(LoggingSeverity::WARNING) << "-----";
 
@@ -1802,7 +1802,7 @@ namespace tgcalls {
             _appliedRemoteRescription = offerSdp;
 
             RTC_LOG(LoggingSeverity::WARNING)
-                    << "----- setOfferSdp " << (isAnswer ? "answer" : "offer") << " -----";
+            << "----- setOfferSdp " << (isAnswer ? "answer" : "offer") << " -----";
             RTC_LOG(LoggingSeverity::WARNING) << offerSdp;
             RTC_LOG(LoggingSeverity::WARNING) << "-----";
 
@@ -1832,19 +1832,10 @@ namespace tgcalls {
                                                                }
                                                                if (!isAnswer) {
 
-                                                                   getMediaThread()->PostDelayedTask(
-                                                                           RTC_FROM_HERE, [weak]() {
-                                                                               getMediaThread()->PostTask(
-                                                                                       RTC_FROM_HERE,
-                                                                                       [weak]() {
-                                                                                           auto strong = weak.lock();
-                                                                                           if (!strong) {
-                                                                                               return;
-                                                                                           }
-                                                                                           strong->emitAnswer(
-                                                                                                   false);
-                                                                                       });
-                                                                           }, 5000);
+
+                                                                   strong->emitAnswer(
+                                                                           false);
+
 
                                                                } else {
                                                                    if (isInitialJoinAnswer) {
@@ -1936,12 +1927,12 @@ namespace tgcalls {
 
         void onTrackAdded(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
             RTC_LOG(LoggingSeverity::WARNING)
-                    << "trackadded2";
+            << "trackadded2";
             if (transceiver->direction() == webrtc::RtpTransceiverDirection::kRecvOnly &&
                 transceiver->media_type() == cricket::MediaType::MEDIA_TYPE_AUDIO) {
 
                 RTC_LOG(LoggingSeverity::WARNING)
-                        << "trackadded3 ";
+                << "trackadded3 ";
                 if (transceiver->mid()) {
                     auto streamId = transceiver->mid().value();
 //                    if (streamId.find("audio") != 0) {
@@ -1987,7 +1978,7 @@ namespace tgcalls {
                                         }));
 
                         RTC_LOG(LoggingSeverity::WARNING)
-                                << "trackadded4";
+                        << "trackadded4 ssrc="<<ssrc;
                         _audioTrackSinks[ssrc] = sink;
                         remoteAudioTrack->AddSink(sink.get());
                     }
@@ -2143,11 +2134,11 @@ namespace tgcalls {
                                                                }
 
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                                       << "----- setLocalDescription answer -----";
+                                                               << "----- setLocalDescription answer -----";
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                                       << sdp;
+                                                               << sdp;
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                                       << "-----";
+                                                               << "-----";
 
                                                                webrtc::SdpParseError error;
                                                                webrtc::SessionDescriptionInterface *sessionDescription = webrtc::CreateSessionDescription(
@@ -2201,9 +2192,9 @@ namespace tgcalls {
         }
 
         std::function<void(bool)> _networkStateUpdated;
-        std::function< void(GroupLevelsUpdate
-        const &)>
-        _audioLevelsUpdated;
+        std::function<void(GroupLevelsUpdate
+                           const &)>
+                _audioLevelsUpdated;
 
         int32_t _myAudioLevelPeakCount = 0;
         float _myAudioLevelPeak = 0;

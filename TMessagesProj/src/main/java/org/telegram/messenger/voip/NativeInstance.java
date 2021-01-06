@@ -129,7 +129,7 @@ public class NativeInstance {
 
     private void condidate(String condidate) {
         MyLog.e("injaaa", "condidate " + condidate);
-        JanusHelper.sendCondidate(condidate);
+        JanusHelper.sendCondidate(condidate,false);
 
 
     }

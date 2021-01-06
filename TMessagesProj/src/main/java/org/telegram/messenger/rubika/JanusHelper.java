@@ -117,7 +117,7 @@ public class JanusHelper {
 
     static public void joinFeed() {
         JanusJoinFeedInput input = new JanusJoinFeedInput();
-        input.body.private_id = privateId;
+//        input.body.private_id = privateId;
         input.body.streams = streamsPublishes;
         DisposableObserver<JanusMessageOutput> a = ApiRequestMessangerRx.getInstance().joinFeed(sessionId, handleIdSubscribe, input).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
             @Override
@@ -284,15 +284,24 @@ public class JanusHelper {
         }
     }
 
-    public static void sendCondidate(String condidate) {
+    public static void sendCondidate(String condidate, boolean completed) {
 
         JanusSendCondidateInput input = new JanusSendCondidateInput();
         input.candidate = new JanusSendCondidateInput.Data();
-        input.candidate.candidate = condidate;
+        if (!completed) {
+            input.candidate.candidate = condidate;
+            input.candidate.sdpMid = "";
+            input.candidate.sdpMLineIndex = 0;
+
+        } else {
+            input.candidate.completed = true;
+        }
         ApiRequestMessangerRx.getInstance().sendCandidate(sessionId, handleIdSubscribe, input).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
             @Override
             public void onNext(@NonNull JanusMessageOutput janusMessageOutput) {
-
+                if (!completed) {
+                    sendCondidate(null, true);
+                }
             }
 
             @Override

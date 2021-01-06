@@ -9,9 +9,10 @@ public class JanusSendCondidateInput {
 
 
     public static class Data {
-        public String sdpMid = "0";
-        public int sdpMLineIndex = 0;
+        public String sdpMid =null ;
+        public Integer sdpMLineIndex;
         public String candidate;
+        public Boolean completed;
     }
 
 
