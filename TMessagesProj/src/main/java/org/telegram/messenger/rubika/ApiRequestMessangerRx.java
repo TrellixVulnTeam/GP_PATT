@@ -12,6 +12,7 @@ import org.telegram.messenger.rubika.models.JanusJoinFeedInput;
 import org.telegram.messenger.rubika.models.JanusJoinInput;
 import org.telegram.messenger.rubika.models.JanusMessageOutput;
 import org.telegram.messenger.rubika.models.JanusOfferSdpInput;
+import org.telegram.messenger.rubika.models.JanusSendCondidateInput;
 
 import java.nio.charset.Charset;
 import java.util.Random;
@@ -157,6 +158,13 @@ public class ApiRequestMessangerRx {
 
     public Observable<JanusMessageOutput> sendSetOffer(String sessionId, String handleId, JanusOfferSdpInput input) {
         return restApiService.janusSdpOffer(sessionId, handleId, input)
+                .compose(rxHelper.applySchedulers())
+                .compose(rxHelper.addRetryAndDelay(1, 2, 3));
+
+    }
+
+    public Observable<JanusMessageOutput> sendCandidate(String sessionId, String handleId, JanusSendCondidateInput input) {
+        return restApiService.janusSendCandidate(sessionId, handleId, input)
                 .compose(rxHelper.applySchedulers())
                 .compose(rxHelper.addRetryAndDelay(1, 2, 3));
 

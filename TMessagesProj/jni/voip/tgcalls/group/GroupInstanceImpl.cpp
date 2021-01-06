@@ -33,6 +33,7 @@
 #include <random>
 #include <sstream>
 #include <iostream>
+#include <unistd.h>
 
 namespace tgcalls {
 
@@ -547,8 +548,11 @@ namespace tgcalls {
             }
 
             virtual void OnIceCandidate(const webrtc::IceCandidateInterface *candidate) override {
+
                 std::string sdp;
                 candidate->ToString(&sdp);
+                RTC_LOG(LoggingSeverity::WARNING)
+                        << "----- onIce condidatreeee join -----";
                 _discoveredIceCandidate(sdp, candidate->sdp_mline_index(), candidate->sdp_mid());
             }
 
@@ -1160,7 +1164,7 @@ namespace tgcalls {
             const auto weak = std::weak_ptr<GroupInstanceManager>(shared_from_this());
 
             webrtc::field_trial::InitFieldTrialsFromString(
-                    //"WebRTC-Audio-SendSideBwe/Enabled/"
+                    "WebRTC-Audio-SendSideBwe/Enabled/"
                     "WebRTC-Audio-Allocation/min:6kbps,max:32kbps/"
                     "WebRTC-Audio-OpusMinPacketLossRate/Enabled-1/"
                     //"WebRTC-FlexFEC-03/Enabled/"
@@ -1284,9 +1288,9 @@ namespace tgcalls {
             webrtc::PeerConnectionInterface::RTCConfiguration config;
             config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
 //        //config.continual_gathering_policy = webrtc::PeerCoxnnectionInterface::ContinualGatheringPolicy::GATHER_CONTINUALLY;
-            config.audio_jitter_buffer_fast_accelerate = true;
-            config.prioritize_most_likely_ice_candidate_pairs = true;
-            config.presume_writable_when_fully_relayed = true;
+//            config.audio_jitter_buffer_fast_accelerate = true;
+//            config.prioritize_most_likely_ice_candidate_pairs = true;
+//            config.presume_writable_when_fully_relayed = true;
 
             webrtc::PeerConnectionInterface::IceServer iceServer;
             std::ostringstream uri;
@@ -1312,8 +1316,9 @@ namespace tgcalls {
                             auto strong = weak.lock();
                             if (strong) {
                                 RTC_LOG(LS_INFO)
-                                << "aappppp emitIceCandidate " << sdp << ", " << mid << ", "
-                                << sdpMid;
+                                        << "aappppp emitIceCandidate " << sdp << ", " << mid << ", "
+                                        << sdpMid;
+                                strong->cCompletion(sdp);
                             }
                         });
                     },
@@ -1328,7 +1333,7 @@ namespace tgcalls {
                     [weak](rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
                         getMediaThread()->PostTask(RTC_FROM_HERE, [weak, transceiver]() {
                             RTC_LOG(LoggingSeverity::WARNING)
-                            << "trackadded1";
+                                    << "trackadded1";
                             auto strong = weak.lock();
                             if (!strong) {
                                 return;
@@ -1541,6 +1546,14 @@ namespace tgcalls {
             _peerConnection->Close();
         }
 
+        void setAnswerSdp(std::function<void(std::string)> completion) {
+            aCompletion = completion;
+        }
+
+        void setCondidateCompletion(std::function<void(std::string)> completion) {
+            condidateCompletion = completion;
+        }
+
         void emitJoinPayload(std::function<void(GroupJoinPayload)> completion) {
             const auto weak = std::weak_ptr<GroupInstanceManager>(shared_from_this());
             webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
@@ -1595,11 +1608,11 @@ namespace tgcalls {
                                                                auto adjustedSdp = result.str();
 
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                               << "----- setLocalDescription join -----";
+                                                                       << "----- setLocalDescription join -----";
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                               << adjustedSdp;
+                                                                       << adjustedSdp;
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                               << "-----";
+                                                                       << "-----";
 
                                                                webrtc::SdpParseError error;
                                                                webrtc::SessionDescriptionInterface *sessionDescription = webrtc::CreateSessionDescription(
@@ -1640,7 +1653,7 @@ namespace tgcalls {
             _joinPayload = payload;
             //auto sdp = parseJoinResponseIntoSdp(_sessionId, _mainStreamAudioSsrc, payload, true, _allOtherSsrcs, _activeOtherSsrcs);
             auto sdp = payload.sdpString;
-            setOfferSdp(sdp, true, true, false);
+            setOfferSdp(sdp, false, false, false);
         }
 
         void removeSsrcs(std::vector<uint32_t> ssrcs) {
@@ -1738,7 +1751,7 @@ namespace tgcalls {
                                     auto adjustedSdp = result.str();
 
                                     RTC_LOG(LoggingSeverity::WARNING)
-                                    << "----- setLocalDescription applyLocalSdp -----";
+                                            << "----- setLocalDescription applyLocalSdp -----";
                                     RTC_LOG(LoggingSeverity::WARNING) << adjustedSdp;
                                     RTC_LOG(LoggingSeverity::WARNING) << "-----";
 
@@ -1789,7 +1802,7 @@ namespace tgcalls {
             _appliedRemoteRescription = offerSdp;
 
             RTC_LOG(LoggingSeverity::WARNING)
-            << "----- setOfferSdp " << (isAnswer ? "answer" : "offer") << " -----";
+                    << "----- setOfferSdp " << (isAnswer ? "answer" : "offer") << " -----";
             RTC_LOG(LoggingSeverity::WARNING) << offerSdp;
             RTC_LOG(LoggingSeverity::WARNING) << "-----";
 
@@ -1818,8 +1831,21 @@ namespace tgcalls {
                                                                    return;
                                                                }
                                                                if (!isAnswer) {
-                                                                   strong->emitAnswer(
-                                                                           completeMissingSsrcSetup);
+
+                                                                   getMediaThread()->PostDelayedTask(
+                                                                           RTC_FROM_HERE, [weak]() {
+                                                                               getMediaThread()->PostTask(
+                                                                                       RTC_FROM_HERE,
+                                                                                       [weak]() {
+                                                                                           auto strong = weak.lock();
+                                                                                           if (!strong) {
+                                                                                               return;
+                                                                                           }
+                                                                                           strong->emitAnswer(
+                                                                                                   false);
+                                                                                       });
+                                                                           }, 5000);
+
                                                                } else {
                                                                    if (isInitialJoinAnswer) {
                                                                        strong->completedInitialSetup();
@@ -1844,6 +1870,7 @@ namespace tgcalls {
                             }));
 
             _peerConnection->SetRemoteDescription(observer, sessionDescription);
+
         }
 
         void beginStatsTimer(int timeoutMs) {
@@ -1909,18 +1936,18 @@ namespace tgcalls {
 
         void onTrackAdded(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
             RTC_LOG(LoggingSeverity::WARNING)
-            << "trackadded2";
+                    << "trackadded2";
             if (transceiver->direction() == webrtc::RtpTransceiverDirection::kRecvOnly &&
                 transceiver->media_type() == cricket::MediaType::MEDIA_TYPE_AUDIO) {
 
                 RTC_LOG(LoggingSeverity::WARNING)
-                << "trackadded3";
+                        << "trackadded3 ";
                 if (transceiver->mid()) {
                     auto streamId = transceiver->mid().value();
-                    if (streamId.find("audio") != 0) {
-                        return;
-                    }
-                    streamId.replace(0, 5, "");
+//                    if (streamId.find("audio") != 0) {
+//                        return;
+//                    }
+//                    streamId.replace(0, 5, "");
                     std::istringstream iss(streamId);
                     uint32_t ssrc = 0;
                     iss >> ssrc;
@@ -1960,7 +1987,7 @@ namespace tgcalls {
                                         }));
 
                         RTC_LOG(LoggingSeverity::WARNING)
-                        << "trackadded4";
+                                << "trackadded4";
                         _audioTrackSinks[ssrc] = sink;
                         remoteAudioTrack->AddSink(sink.get());
                     }
@@ -2094,9 +2121,16 @@ namespace tgcalls {
             RTC_LOG(LoggingSeverity::WARNING) << "setIsMuted: " << isMuted;
         }
 
+        void bCompletion(std::string basicString) {
+            aCompletion(basicString);
+        }
+
+        void cCompletion(std::string condidate) {
+            condidateCompletion(condidate);
+        }
+
         void emitAnswer(bool completeMissingSsrcSetup) {
             const auto weak = std::weak_ptr<GroupInstanceManager>(shared_from_this());
-
             webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
             rtc::scoped_refptr<CreateSessionDescriptionObserverImpl> observer(
                     new rtc::RefCountedObject<CreateSessionDescriptionObserverImpl>(
@@ -2109,11 +2143,11 @@ namespace tgcalls {
                                                                }
 
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                               << "----- setLocalDescription answer -----";
+                                                                       << "----- setLocalDescription answer -----";
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                               << sdp;
+                                                                       << sdp;
                                                                RTC_LOG(LoggingSeverity::WARNING)
-                                                               << "-----";
+                                                                       << "-----";
 
                                                                webrtc::SdpParseError error;
                                                                webrtc::SessionDescriptionInterface *sessionDescription = webrtc::CreateSessionDescription(
@@ -2129,6 +2163,8 @@ namespace tgcalls {
                                                                                            return;
                                                                                        }
 
+                                                                                       strong->bCompletion(
+                                                                                               sdp);
                                                                                        if (completeMissingSsrcSetup) {
                                                                                            strong->completeProcessingMissingSsrcs();
                                                                                        }
@@ -2165,7 +2201,9 @@ namespace tgcalls {
         }
 
         std::function<void(bool)> _networkStateUpdated;
-        std::function<void(GroupLevelsUpdate const &)> _audioLevelsUpdated;
+        std::function< void(GroupLevelsUpdate
+        const &)>
+        _audioLevelsUpdated;
 
         int32_t _myAudioLevelPeakCount = 0;
         float _myAudioLevelPeak = 0;
@@ -2209,6 +2247,8 @@ namespace tgcalls {
         std::map<uint32_t, GroupLevelValue> _audioLevels;
 
         std::shared_ptr<PlatformContext> _platformContext;
+        std::function<void(std::string)> aCompletion;
+        std::function<void(std::string)> condidateCompletion;
     };
 
     GroupInstanceImpl::GroupInstanceImpl(GroupInstanceDescriptor &&descriptor)
@@ -2254,11 +2294,24 @@ namespace tgcalls {
         });
     }
 
+    void GroupInstanceImpl::setAnswerSdp(std::function<void(std::string)> completion) {
+        _manager->perform(RTC_FROM_HERE, [completion](GroupInstanceManager *manager) {
+            manager->setAnswerSdp(completion);
+        });
+    }
+
+    void GroupInstanceImpl::setCondidateCompletion(std::function<void(std::string)> completion) {
+        _manager->perform(RTC_FROM_HERE, [completion](GroupInstanceManager *manager) {
+            manager->setCondidateCompletion(completion);
+        });
+    }
+
     void GroupInstanceImpl::setJoinResponsePayload(GroupJoinResponsePayload payload) {
         _manager->perform(RTC_FROM_HERE, [payload](GroupInstanceManager *manager) {
             manager->setJoinResponsePayload(payload);
         });
     }
+
 
     void GroupInstanceImpl::removeSsrcs(std::vector<uint32_t> ssrcs) {
         _manager->perform(RTC_FROM_HERE, [ssrcs](GroupInstanceManager *manager) {

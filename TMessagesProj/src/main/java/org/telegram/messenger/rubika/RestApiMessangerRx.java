@@ -10,6 +10,7 @@ import org.telegram.messenger.rubika.models.JanusJoinFeedInput;
 import org.telegram.messenger.rubika.models.JanusJoinInput;
 import org.telegram.messenger.rubika.models.JanusMessageOutput;
 import org.telegram.messenger.rubika.models.JanusOfferSdpInput;
+import org.telegram.messenger.rubika.models.JanusSendCondidateInput;
 
 import io.reactivex.Observable;
 import retrofit2.http.Body;
@@ -32,6 +33,9 @@ public interface RestApiMessangerRx {
 
     @POST("/janus/{sessionId}/{handleId}")
     Observable<JanusMessageOutput> janusSdpOffer(@Path("sessionId") String sessionId, @Path("handleId") String handleId, @Body JanusOfferSdpInput input);
+
+    @POST("/janus/{sessionId}/{handleId}")
+    Observable<JanusMessageOutput> janusSendCandidate(@Path("sessionId") String sessionId, @Path("handleId") String handleId, @Body JanusSendCondidateInput input);
 
     @GET("/janus/{sessionId}/{handleId}")
     Observable<JanusGetEventOutput> getEvent(@Path("sessionId") String sessionId, @Path("handleId") String handleId);

@@ -55,6 +55,7 @@ public class NativeInstance {
         instance.audioLevelsCallback = audioLevelsCallback;
         instance.isGroup = true;
         instance.nativePtr = makeGroupNativeInstance(instance, SharedConfig.disableVoiceAudioEffects);
+        JanusHelper.joinFeed();
         return instance;
     }
 
@@ -126,6 +127,13 @@ public class NativeInstance {
 
     }
 
+    private void condidate(String condidate) {
+        MyLog.e("injaaa", "condidate " + condidate);
+        JanusHelper.sendCondidate(condidate);
+
+
+    }
+
     private void onEmitJoinPayload(String ufrag, String pwd, Instance.Fingerprint[] fingerprints, int ssrc) {
         try {
             JSONObject json = new JSONObject();
@@ -149,7 +157,7 @@ public class NativeInstance {
 
     public native void removeSsrcs(int[] ssrcs);
 
-    public native void setJoinResponsePayload(String ufrag, String pwd, Instance.Fingerprint[] fingerprints, Instance.Candidate[] candidates,String sdp);
+    public native void setJoinResponsePayload(String ufrag, String pwd, Instance.Fingerprint[] fingerprints, Instance.Candidate[] candidates, String sdp);
 
     private Instance.FinalState finalState;
     private CountDownLatch stopBarrier;

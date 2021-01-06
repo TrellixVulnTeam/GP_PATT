@@ -1,6 +1,7 @@
 package org.telegram.messenger.rubika.models;
 
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
 public class JanusGetEventOutput {
     public String janus;
@@ -15,12 +16,13 @@ public class JanusGetEventOutput {
     }
 
     public static class Data {
-        public String private_id;
+        public long private_id;
         public ArrayList<Publisher> publishers;
     }
 
     public static class Publisher {
-        public String id;
+        public long id;
+        public ArrayList<StreamObject> streams;
 
     }
 
@@ -30,4 +32,10 @@ public class JanusGetEventOutput {
     }
 
 
+    public static class StreamObject {
+        public String type;
+        public String mid;
+        public long id;
+
+    }
 }

@@ -9,9 +9,11 @@ import org.telegram.messenger.rubika.models.JanusJoinFeedInput;
 import org.telegram.messenger.rubika.models.JanusJoinInput;
 import org.telegram.messenger.rubika.models.JanusMessageOutput;
 import org.telegram.messenger.rubika.models.JanusOfferSdpInput;
+import org.telegram.messenger.rubika.models.JanusSendCondidateInput;
 import org.telegram.messenger.voip.Instance;
 import org.telegram.messenger.voip.VoIPService;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -24,10 +26,12 @@ import static org.telegram.messenger.voip.VoIPBaseService.STATE_WAIT_INIT_ACK;
 public class JanusHelper {
     static public String sessionId = "";
     static public String handleId = "";
-    private static String privateId = "";
+    private static long privateId = 0;
+    private static String handleIdSubscribe = "";
+    static ArrayList<JanusJoinFeedInput.StreamObject> streamsPublishes = new ArrayList<>();
 
     public static void create() {
-        ApiRequestMessangerRx.getInstance().createJanus(new JanusCreateInput()).subscribeWith(new DisposableObserver<JanusCreateOutput>() {
+        ApiRequestMessangerRx.getInstance().createJanus(new JanusCreateInput()).subscribe(new DisposableObserver<JanusCreateOutput>() {
             @Override
             public void onNext(JanusCreateOutput value) {
                 MyLog.e("janus", "session " + value.data.id);
@@ -69,6 +73,27 @@ public class JanusHelper {
         });
     }
 
+    public static void attachSubscribe() {
+        ApiRequestMessangerRx.getInstance().attachJanus(sessionId, new JanusAttachInput()).subscribe(new DisposableObserver<JanusAttachOutput>() {
+            @Override
+            public void onNext(@NonNull JanusAttachOutput janusAttachOutput) {
+                MyLog.e("janus", "handleId " + janusAttachOutput.data.id);
+                handleIdSubscribe = janusAttachOutput.data.id;
+
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
+
     public static void joinRoom() {
         ApiRequestMessangerRx.getInstance().sendMessageJoin(sessionId, handleId, new JanusJoinInput()).subscribe(new DisposableObserver<JanusMessageOutput>() {
             @Override
@@ -90,11 +115,11 @@ public class JanusHelper {
         });
     }
 
-    static public void joinFeed(JanusGetEventOutput.Publisher p) {
+    static public void joinFeed() {
         JanusJoinFeedInput input = new JanusJoinFeedInput();
         input.body.private_id = privateId;
-        input.body.feed = p.id;
-        DisposableObserver<JanusMessageOutput> a = ApiRequestMessangerRx.getInstance().joinFeed(sessionId, handleId, input).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
+        input.body.streams = streamsPublishes;
+        DisposableObserver<JanusMessageOutput> a = ApiRequestMessangerRx.getInstance().joinFeed(sessionId, handleIdSubscribe, input).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
             @Override
             public void onNext(@NonNull JanusMessageOutput output) {
 
@@ -116,7 +141,7 @@ public class JanusHelper {
     public static void sendOffer(String sdp) {
         JanusOfferSdpInput str = new JanusOfferSdpInput();
         str.jsep.sdp = sdp;
-        ApiRequestMessangerRx.getInstance().sendSetOffer(sessionId, handleId, str).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
+        ApiRequestMessangerRx.getInstance().sendSetOffer(sessionId, handleIdSubscribe, str).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
             @Override
             public void onNext(@NonNull JanusMessageOutput janusMessageOutput) {
 
@@ -139,16 +164,28 @@ public class JanusHelper {
             @Override
             public void onNext(@NonNull JanusGetEventOutput janusGetEventOutput) {
                 if (janusGetEventOutput.plugindata != null) {
-                    if (janusGetEventOutput.plugindata.data.private_id != null) {
+                    if (janusGetEventOutput.plugindata.data.private_id != 0) {
                         privateId = janusGetEventOutput.plugindata.data.private_id;
                     }
                     if (janusGetEventOutput.plugindata.data.publishers != null) {
-                        for (JanusGetEventOutput.Publisher p : janusGetEventOutput.plugindata.data.publishers) {
-                            joinFeed(p);
+                        streamsPublishes = new ArrayList<>();
+                        for (JanusGetEventOutput.Publisher publisher : janusGetEventOutput.plugindata.data.publishers) {
+                            for (JanusGetEventOutput.StreamObject s : publisher.streams) {
+                                if (s.type.equals("audio")) {
+                                    JanusJoinFeedInput.StreamObject s2 = new JanusJoinFeedInput.StreamObject();
+                                    s2.feed = publisher.id;
+                                    s2.mid = s.mid;
+                                    streamsPublishes.add(s2);
+                                }
+                            }
+
+                        }
+                        if (handleIdSubscribe.isEmpty()) {
+                            attachSubscribe();
                         }
                     }
                 }
-                if (janusGetEventOutput.jsep != null && janusGetEventOutput.jsep.sdp != null && janusGetEventOutput.jsep.type.equals("answer")) {
+                if (janusGetEventOutput.jsep != null && janusGetEventOutput.jsep.sdp != null && janusGetEventOutput.jsep.type.equals("offer")) {
                     parseSdpToJson(janusGetEventOutput.jsep.sdp);
                 }
             }
@@ -245,7 +282,28 @@ public class JanusHelper {
         if (VoIPService.getSharedInstance().currentState == STATE_WAIT_INIT) {
             VoIPService.getSharedInstance().dispatchStateChanged(STATE_WAIT_INIT_ACK);
         }
+    }
 
+    public static void sendCondidate(String condidate) {
 
+        JanusSendCondidateInput input = new JanusSendCondidateInput();
+        input.candidate = new JanusSendCondidateInput.Data();
+        input.candidate.candidate = condidate;
+        ApiRequestMessangerRx.getInstance().sendCandidate(sessionId, handleIdSubscribe, input).subscribeWith(new DisposableObserver<JanusMessageOutput>() {
+            @Override
+            public void onNext(@NonNull JanusMessageOutput janusMessageOutput) {
+
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
     }
 }

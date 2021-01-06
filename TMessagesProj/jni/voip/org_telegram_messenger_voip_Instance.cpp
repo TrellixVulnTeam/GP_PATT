@@ -317,29 +317,43 @@ Java_org_telegram_messenger_voip_NativeInstance_makeGroupNativeInstance(JNIEnv *
     auto *holder = new InstanceHolder;
     holder->groupNativeInstance = std::make_unique<GroupInstanceImpl>(std::move(descriptor));
     holder->_platformContext = platformContext;
-    holder->groupNativeInstance->emitJoinPayload(
-            [platformContext](const GroupJoinPayload &payload) {
-                JNIEnv *env = webrtc::AttachCurrentThreadIfNeeded();
-                jobjectArray array = env->NewObjectArray(payload.fingerprints.size(),
-                                                         FingerprintClass, 0);
-                for (int a = 0; a < payload.fingerprints.size(); a++) {
-                    env->SetObjectArrayElement(array, a,
-                                               asJavaFingerprint(env, payload.fingerprints[a].hash,
-                                                                 payload.fingerprints[a].setup,
-                                                                 payload.fingerprints[a].fingerprint));
-                }
-                jobject globalRef = ((AndroidContext *) platformContext.get())->getJavaInstance();
-                env->CallVoidMethod(globalRef, env->GetMethodID(NativeInstanceClass, "sdp",
-                                                                "(Ljava/lang/String;)V"),
-                                    env->NewStringUTF(payload.sdp.c_str()));
-                env->CallVoidMethod(globalRef,
-                                    env->GetMethodID(NativeInstanceClass, "onEmitJoinPayload",
-                                                     "(Ljava/lang/String;Ljava/lang/String;[Lorg/telegram/messenger/voip/Instance$Fingerprint;I)V"),
-                                    env->NewStringUTF(payload.ufrag.c_str()),
-                                    env->NewStringUTF(payload.pwd.c_str()), array,
-                                    (jint) payload.ssrc);
-
-            });
+//    holder->groupNativeInstance->emitJoinPayload(
+//            [platformContext](const GroupJoinPayload &payload) {
+//                JNIEnv *env = webrtc::AttachCurrentThreadIfNeeded();
+//                jobjectArray array = env->NewObjectArray(payload.fingerprints.size(),
+//                                                         FingerprintClass, 0);
+//                for (int a = 0; a < payload.fingerprints.size(); a++) {
+//                    env->SetObjectArrayElement(array, a,
+//                                               asJavaFingerprint(env, payload.fingerprints[a].hash,
+//                                                                 payload.fingerprints[a].setup,
+//                                                                 payload.fingerprints[a].fingerprint));
+//                }
+//                jobject globalRef = ((AndroidContext *) platformContext.get())->getJavaInstance();
+////                env->CallVoidMethod(globalRef, env->GetMethodID(NativeInstanceClass, "sdp",
+////                                                                "(Ljava/lang/String;)V"),
+////                                    env->NewStringUTF(payload.sdp.c_str()));
+//                env->CallVoidMethod(globalRef,
+//                                    env->GetMethodID(NativeInstanceClass, "onEmitJoinPayload",
+//                                                     "(Ljava/lang/String;Ljava/lang/String;[Lorg/telegram/messenger/voip/Instance$Fingerprint;I)V"),
+//                                    env->NewStringUTF(payload.ufrag.c_str()),
+//                                    env->NewStringUTF(payload.pwd.c_str()), array,
+//                                    (jint) payload.ssrc);
+//
+//            });
+    holder->groupNativeInstance->setAnswerSdp([platformContext](const std::string &payload) {
+        JNIEnv *env = webrtc::AttachCurrentThreadIfNeeded();
+        jobject globalRef = ((AndroidContext *) platformContext.get())->getJavaInstance();
+        env->CallVoidMethod(globalRef, env->GetMethodID(NativeInstanceClass, "sdp",
+                                                        "(Ljava/lang/String;)V"),
+                            env->NewStringUTF(payload.c_str()));
+    });
+    holder->groupNativeInstance->setCondidateCompletion([platformContext](const std::string &payload) {
+        JNIEnv *env = webrtc::AttachCurrentThreadIfNeeded();
+        jobject globalRef = ((AndroidContext *) platformContext.get())->getJavaInstance();
+        env->CallVoidMethod(globalRef, env->GetMethodID(NativeInstanceClass, "condidate",
+                                                        "(Ljava/lang/String;)V"),
+                            env->NewStringUTF(payload.c_str()));
+    });
     return reinterpret_cast<jlong>(holder);
 }
 
@@ -347,7 +361,8 @@ JNIEXPORT void JNICALL
 Java_org_telegram_messenger_voip_NativeInstance_setJoinResponsePayload(JNIEnv *env, jobject obj,
                                                                        jstring ufrag, jstring pwd,
                                                                        jobjectArray fingerprints,
-                                                                       jobjectArray candidates,jstring sdpString) {
+                                                                       jobjectArray candidates,
+                                                                       jstring sdpString) {
     InstanceHolder *instance = getInstanceHolder(env, obj);
     if (instance->groupNativeInstance == nullptr) {
         return;
@@ -426,6 +441,8 @@ Java_org_telegram_messenger_voip_NativeInstance_setJoinResponsePayload(JNIEnv *e
                     .candidates = candidatesArray,
                     .sdpString=tgvoip::jni::JavaStringToStdString(env, sdpString),
             });
+
+
 }
 
 JNIEXPORT void JNICALL

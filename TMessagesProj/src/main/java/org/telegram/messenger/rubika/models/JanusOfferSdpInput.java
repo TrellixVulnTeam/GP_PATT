@@ -18,7 +18,7 @@ public class JanusOfferSdpInput {
     }
 
     public static class Jsep {
-        public String type = "offer";
+        public String type = "answer";
         public String sdp;
     }
 }

@@ -83,7 +83,6 @@ namespace tgcalls {
     struct GroupJoinResponsePayload {
         std::string ufrag;
         std::string pwd;
-
         std::vector<GroupJoinPayloadFingerprint> fingerprints;
         std::vector<GroupJoinResponseCandidate> candidates;
         std::string sdpString;
@@ -101,6 +100,8 @@ namespace tgcalls {
         void stop();
 
         void emitJoinPayload(std::function<void(GroupJoinPayload)> completion);
+        void setAnswerSdp(std::function<void(std::string)> completion);
+        void setCondidateCompletion(std::function<void(std::string)> completion);
 
         void setJoinResponsePayload(GroupJoinResponsePayload payload);
 
@@ -111,6 +112,8 @@ namespace tgcalls {
         void setAudioOutputDevice(std::string id);
 
         void setAudioInputDevice(std::string id);
+
+         std::function<void(std::string)> aCompletion;
 
         struct AudioDevice {
             enum class Type {
