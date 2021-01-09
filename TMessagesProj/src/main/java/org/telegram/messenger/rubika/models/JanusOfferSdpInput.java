@@ -12,8 +12,7 @@ public class JanusOfferSdpInput {
     public Jsep jsep = new Jsep();
 
     public static class Data {
-        public boolean audio = true;
-        public boolean video = false;
+        public boolean muted = false;
         public String request = "configure";
     }
 

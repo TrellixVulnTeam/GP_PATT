@@ -12,7 +12,7 @@ public class JanusJoinInput {
     public static class Data {
         public String request = "join";
         public int room = 1234;
-        public String ptype = "publisher";
+
         public String display = "Android" + Build.MODEL;
     }
 }
